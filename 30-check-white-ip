@@ -1,0 +1,18 @@
+#!/bin/sh
+
+if [[ "$ACTION" != "ifup" || "$INTERFACE" != "wan" ]]
+then
+	exit
+fi
+
+ip2hex() {
+	echo 0x`echo $1 | tr . ' ' | xargs -n 1 printf %02X`
+}
+
+. /lib/functions/network.sh; network_get_ipaddr ip wan
+
+if [[ $(( (`ip2hex $ip` & `ip2hex 255.192.0.0`) == `ip2hex 100.64.0.0` )) != 0 ]]
+then
+	logger -t grey_ip "Reconnecting wan - grey IP detected: $ip"
+	ifup wan
+fi
